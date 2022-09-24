@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "serve": "webpack-dev-server --content-base dist/",
+    "serve": "webpack serve",
     "build": "webpack",
     "deploy": "gh-pages -d dist"
   },

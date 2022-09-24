@@ -20,24 +20,196 @@ renderer.setSize(width, height);
 const canvas = renderer.domElement;
 document.body.appendChild(canvas);
 
+/// Config contains the physical and visualization parameters
+var Config = function () {
+  this.dipole_angle = 10.0;
+  this.obs_angle = 45.0;
+  this.pl_radius = 30.0;
+}
+var conf = new Config();
+var q_dipole = new THREE.Quaternion();
+var q_dipole_inv = new THREE.Quaternion();
+
+function update_quaternion() {
+  q_dipole.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * conf.dipole_angle / 180.0);
+  q_dipole_inv.copy(q_dipole);
+  q_dipole_inv.invert();
+}
+
+update_quaternion();
+
+/// Setting up the scene
 var scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 // THREE.Object3D.DefaultUp.set(0.5,0.0,0.8);
 var camera = new THREE.PerspectiveCamera(30, width / height, 1, 1000);
-camera.position.z = 0;
-camera.position.x = 80;
+camera.position.z = 30;
+camera.position.x = 160;
 camera.up.set(0, 0, 1);
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 var controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
 controls.enableKeys = false;
 
+/// Add the neutron star
 var star_radius = 1.0;
-var star_geometry = new THREE.SphereGeometry(radius, 64, 64);
+var star_geometry = new THREE.SphereGeometry(star_radius, 64, 64);
 var star_material = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
-// var material = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
 var star_mesh = new THREE.Mesh(star_geometry, star_material);
 scene.add(star_mesh);
+
+/// Add polarization limiting sphere
+var pl_geometry = new THREE.SphereGeometry(1.0, 64, 64);
+var pl_material = new THREE.MeshPhongMaterial({ color: 0xffffff,
+                                                transparent: true,
+                                                depthWrite: false });
+pl_material.opacity = 0.3;
+var pl_mesh = new THREE.Mesh(pl_geometry, pl_material);
+pl_mesh.scale.setScalar(conf.pl_radius);
+scene.add(pl_mesh);
+
+/// Add a spin axis
+var axis_geometry = new THREE.BufferGeometry();
+const axis_vertices = new Float32Array( [
+  0, 0, -300,
+  0, 0, 300
+] );
+axis_geometry.setAttribute( 'position', new THREE.BufferAttribute( axis_vertices, 3 ) );
+var z_line = new THREE.Line(axis_geometry, new THREE.LineBasicMaterial({
+  color: 0x8080aa,
+  linewidth: 2.5,
+}));
+scene.add(z_line);
+
+/// Add lighting to the star and other meshes
+var directionalLight = new THREE.DirectionalLight(0xffffffff);
+directionalLight.position.set(107, 107, 107);
+scene.add(directionalLight);
+
+var light = new THREE.AmbientLight(0x404040); // soft white light
+scene.add(light);
+
+/// Defining a group for the field lines
+var field_lines = new THREE.Group();
+
+function remove_fieldlines() {
+  for (var i = field_lines.children.length - 1; i >= 0; i--) {
+    if (field_lines.children[i].name == "line") {
+      var obj = field_lines.children[i];
+      obj.material.dispose();
+      obj.geometry.dispose();
+      field_lines.remove(obj);
+    }
+  }
+}
+
+function create_fieldlines(th_obs, r_pl, n_lines, n_segments) {
+  for (var i = 0; i < n_lines; i++) {
+    var phi = i * 2.0 * Math.PI / n_lines;
+    // At r_pl, the angle of the intersection point is th_obs
+    var p_intersect = new THREE.Vector3(r_pl * Math.sin(th_obs) * Math.cos(phi),
+                                        r_pl * Math.sin(th_obs) * Math.sin(phi),
+                                        r_pl * Math.cos(th_obs));
+    // Find the intersection point in the magnetic dipole frame
+    p_intersect.applyQuaternion(q_dipole);
+    // Find the stellar footpoint theta
+    var th_intersect = Math.acos(p_intersect.z / r_pl);
+    var th_foot = Math.asin(Math.sqrt(1.0 / r_pl * (Math.sin(th_intersect)**2)));
+    var r_max = 1.0 / Math.sin(th_foot)**2;
+    var phi_line = Math.atan2(p_intersect.y, p_intersect.x);
+    var line_pos = []
+    for (var j = 0; j <= n_segments; j++) {
+      var th = th_foot + j * (Math.PI - 2.0 * th_foot) / n_segments;
+      var r = r_max * Math.sin(th)**2;
+      var p = new THREE.Vector3(r * Math.sin(th) * Math.cos(phi_line),
+                                r * Math.sin(th) * Math.sin(phi_line),
+                                r * Math.cos(th));
+      // Rotate it back to the lab frame
+      p.applyQuaternion(q_dipole_inv);
+      line_pos.push(p.x, p.y, p.z);
+    }
+    const line_geometry = new LineGeometry();
+    line_geometry.setPositions( line_pos );
+
+    var line_matLine = new LineMaterial( {
+      color: 0x33dd33,
+      worldUnits: true,
+      linewidth: 0.15, // in world units with size attenuation, pixels otherwise
+      vertexColors: false,
+      // alphaTest: 0.5,
+      // depthTest: false,
+
+      // resolution:  to be set by renderer, eventually
+      dashed: false,
+      // alphaToCoverage: true,
+      transparent: true,
+      opacity: 0.7,
+      // blending: THREE.NormalBlending,
+    } );
+
+    var l = new Line2( line_geometry, line_matLine );
+    l.computeLineDistances();
+    l.name = "line";
+    field_lines.add(l);
+  }
+}
+
+create_fieldlines(conf.obs_angle * Math.PI / 180, conf.pl_radius, 20, 100);
+scene.add(field_lines);
+
+function update_fieldline() {
+  update_quaternion();
+  remove_fieldlines();
+  create_fieldlines(conf.obs_angle * Math.PI / 180, conf.pl_radius, 20, 100);
+}
+
+/// A circle to visualize the trajectory of observing angle
+var obs_circ_pos = [];
+var obs_circ_n_segments = 100;
+for (var i = 0; i <= obs_circ_n_segments; i++) {
+  var phi = i * 2.0 * Math.PI / obs_circ_n_segments;
+  obs_circ_pos.push(Math.cos(phi), Math.sin(phi), 0.0);
+}
+const obs_circ_geometry = new LineGeometry();
+obs_circ_geometry.setPositions( obs_circ_pos );
+
+var obs_circ_matLine = new LineMaterial( {
+  color: "aqua",
+  worldUnits: true,
+  linewidth: 0.15, // in world units with size attenuation, pixels otherwise
+  vertexColors: false,
+  // alphaTest: 0.5,
+  // depthTest: false,
+
+  // resolution:  to be set by renderer, eventually
+  dashed: false,
+  // alphaToCoverage: true,
+  transparent: true,
+  opacity: 0.7,
+  // blending: THREE.NormalBlending,
+} );
+
+var obs_circ = new Line2( obs_circ_geometry, obs_circ_matLine );
+obs_circ.computeLineDistances();
+scene.add(obs_circ);
+obs_circ.scale.setScalar(conf.pl_radius * Math.sin(conf.obs_angle * Math.PI / 180));
+obs_circ.position.setZ(conf.pl_radius * Math.cos(conf.obs_angle * Math.PI / 180));
+
+function update_pl_sphere() {
+  pl_mesh.scale.setScalar(conf.pl_radius);
+  obs_circ.scale.setScalar(conf.pl_radius * Math.sin(conf.obs_angle * Math.PI / 180));
+  obs_circ.position.setZ(conf.pl_radius * Math.cos(conf.obs_angle * Math.PI / 180));
+  update_fieldline();
+}
+
+// function
+
+const gui = new GUI();
+gui.add(conf, "pl_radius", 1.0, 100.0).listen().onChange(update_pl_sphere);
+gui.add(conf, "obs_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
+gui.add(conf, "dipole_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
 
 function animate() {
   requestAnimationFrame(animate, canvas);
