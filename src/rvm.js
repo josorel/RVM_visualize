@@ -10,15 +10,16 @@ import { LineGeometry } from '../node_modules/three/examples/jsm/lines/LineGeome
 const width = window.innerWidth;
 const height = window.innerHeight;
 const aspect = width / height;
+const canvas = document.querySelector("canvas");
 var renderer = new THREE.WebGLRenderer({
-  // canvas: canvas,
+  canvas: canvas,
   alpha: true,
   antialias: true,
   preserveDrawingBuffer: true
 });
 renderer.setSize(width, height);
-const canvas = renderer.domElement;
-document.body.appendChild(canvas);
+// const canvas = renderer.domElement;
+// document.body.appendChild(canvas);
 
 /// Config contains the physical and visualization parameters
 var Config = function () {

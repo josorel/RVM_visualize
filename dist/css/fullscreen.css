@@ -3,5 +3,32 @@ canvas {
 }
 body {
   margin: 0 auto;
-  /* font-family: 'Open Sans', sans-serif; */
+  font-family: 'Open Sans', sans-serif;
+}
+.vis {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  margin: 0px;
+}
+#description {
+  position: absolute;
+  left: 5vw;
+  top: 5vh;
+  width: 25vw;
+  height: 53vh;
+  padding: 2em;
+  border-radius: 25px;
+  z-index: 1;
+  color: #dddddd;
+  background-color: rgba(30, 30, 30, 0.5);
+}
+#description p {
+  color: #ffffff;
+  font-size: 1vw;
+  line-height: 1.5;
+}
+#description h3 {
+  color: #ffffff;
+  font-size: 2vw;
 }
