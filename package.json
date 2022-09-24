@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "serve": "webpack-dev-server --content-base dist/",
+    "build": "webpack",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "dat.gui": "^0.7.9",
+    "three": "^0.144"
+  },
+  "devDependencies": {
+    "gh-pages": "^4.0.0",
+    "webpack": "^5.74",
+    "webpack-cli": "^4.10",
+    "webpack-dev-server": "^4.11"
+  }
+}
