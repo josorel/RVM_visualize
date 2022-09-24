@@ -25,6 +25,8 @@ var Config = function () {
   this.dipole_angle = 10.0;
   this.obs_angle = 45.0;
   this.pl_radius = 30.0;
+  this.x_mode = true;
+  this.o_mode = false;
 }
 var conf = new Config();
 var q_dipole = new THREE.Quaternion();
@@ -91,27 +93,38 @@ scene.add(directionalLight);
 var light = new THREE.AmbientLight(0x404040); // soft white light
 scene.add(light);
 
-/// Defining a group for the field lines
+/// Defining a group for the field lines and polarization vectors
 var field_lines = new THREE.Group();
+var polarization_vectors = new THREE.Group();
+var intersect_points = [];
 
-function remove_fieldlines() {
-  for (var i = field_lines.children.length - 1; i >= 0; i--) {
-    if (field_lines.children[i].name == "line") {
-      var obj = field_lines.children[i];
+function clear_group(group) {
+  for (var i = group.children.length - 1; i >= 0; i--) {
+    if (group.children[i].name == "line") {
+      var obj = group.children[i];
       obj.material.dispose();
       obj.geometry.dispose();
-      field_lines.remove(obj);
+      group.remove(obj);
+    } else if (group.children[i].name == "arrow") {
+      var obj = group.children[i];
+      group.remove(obj);
     }
   }
 }
 
 function create_fieldlines(th_obs, r_pl, n_lines, n_segments) {
+  // clear the intersection points array first
+  intersect_points.length = 0;
+
   for (var i = 0; i < n_lines; i++) {
     var phi = i * 2.0 * Math.PI / n_lines;
     // At r_pl, the angle of the intersection point is th_obs
     var p_intersect = new THREE.Vector3(r_pl * Math.sin(th_obs) * Math.cos(phi),
                                         r_pl * Math.sin(th_obs) * Math.sin(phi),
                                         r_pl * Math.cos(th_obs));
+    var p_copy = new THREE.Vector3();
+    p_copy.copy(p_intersect);
+    intersect_points.push(p_copy);
     // Find the intersection point in the magnetic dipole frame
     p_intersect.applyQuaternion(q_dipole);
     // Find the stellar footpoint theta
@@ -156,13 +169,46 @@ function create_fieldlines(th_obs, r_pl, n_lines, n_segments) {
   }
 }
 
+function create_polarization_vectors() {
+  var m = new THREE.Vector3(0, Math.sin(conf.dipole_angle * Math.PI / 180),
+                            Math.cos(conf.dipole_angle * Math.PI / 180));
+  // m.negate();
+  var r = conf.pl_radius;
+
+  for (const p of intersect_points) {
+    var b = new THREE.Vector3();
+    b.copy(p);
+    b.multiplyScalar(3.0 * m.dot(p) / Math.pow(r, 5));
+    var b2 = new THREE.Vector3();
+    b2.copy(m);
+    b2.multiplyScalar(1.0 / Math.pow(r, 3));
+    b.sub(b2);
+    var dir = new THREE.Vector3();
+    dir.crossVectors(p, b);
+    dir.normalize();
+    if (conf.o_mode) {
+      dir.cross(p);
+      dir.normalize();
+    }
+
+    const arrow = new THREE.ArrowHelper( dir, p, 3.0, 0xdd4433 );
+    arrow.name = "arrow";
+    polarization_vectors.add(arrow);
+  }
+}
+
 create_fieldlines(conf.obs_angle * Math.PI / 180, conf.pl_radius, 20, 100);
 scene.add(field_lines);
+create_polarization_vectors();
+scene.add(polarization_vectors);
 
 function update_fieldline() {
   update_quaternion();
-  remove_fieldlines();
+  // remove_fieldlines();
+  clear_group(field_lines);
+  clear_group(polarization_vectors);
   create_fieldlines(conf.obs_angle * Math.PI / 180, conf.pl_radius, 20, 100);
+  create_polarization_vectors();
 }
 
 /// A circle to visualize the trajectory of observing angle
@@ -204,12 +250,24 @@ function update_pl_sphere() {
   update_fieldline();
 }
 
-// function
+function switch_o_mode() {
+  conf.o_mode = true;
+  conf.x_mode = false;
+  update_fieldline();
+}
+
+function switch_x_mode() {
+  conf.o_mode = false;
+  conf.x_mode = true;
+  update_fieldline();
+}
 
 const gui = new GUI();
 gui.add(conf, "pl_radius", 1.0, 100.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "obs_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "dipole_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
+gui.add(conf, "o_mode").listen().onChange(switch_o_mode);
+gui.add(conf, "x_mode").listen().onChange(switch_x_mode);
 
 function animate() {
   requestAnimationFrame(animate, canvas);
@@ -220,6 +278,7 @@ function animate() {
   // closed_lines.visible = conf.show_closed;
 
   renderer.render(scene, camera);
+  controls.update();
   // stats.end();
 }
 
