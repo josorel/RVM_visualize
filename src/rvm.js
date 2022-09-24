@@ -27,6 +27,7 @@ var Config = function () {
   this.pl_radius = 30.0;
   this.x_mode = true;
   this.o_mode = false;
+  this.rotating = false;
 }
 var conf = new Config();
 var q_dipole = new THREE.Quaternion();
@@ -45,8 +46,9 @@ var scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 // THREE.Object3D.DefaultUp.set(0.5,0.0,0.8);
 var camera = new THREE.PerspectiveCamera(30, width / height, 1, 1000);
-camera.position.z = 30;
-camera.position.x = 160;
+var camera_d = 160;
+camera.position.z = camera_d * Math.cos(80 * Math.PI / 180);
+camera.position.x = camera_d * Math.sin(80 * Math.PI / 180);
 camera.up.set(0, 0, 1);
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -56,8 +58,8 @@ controls.dampingFactor = 0.05;
 controls.enableKeys = false;
 
 /// Add the neutron star
-var star_radius = 1.0;
-var star_geometry = new THREE.SphereGeometry(star_radius, 64, 64);
+// var star_radius = 1.0;
+var star_geometry = new THREE.SphereGeometry(1.0, 64, 64);
 var star_material = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
 var star_mesh = new THREE.Mesh(star_geometry, star_material);
 scene.add(star_mesh);
@@ -67,7 +69,7 @@ var pl_geometry = new THREE.SphereGeometry(1.0, 64, 64);
 var pl_material = new THREE.MeshPhongMaterial({ color: 0xffffff,
                                                 transparent: true,
                                                 depthWrite: false,
-                                                blending: THREE.NormalBlending,
+                                                blending: THREE.AdditiveBlending,
                                                 // blending: THREE.SubtractiveBlending,
                                               });
 pl_material.opacity = 0.3;
@@ -136,6 +138,7 @@ function create_fieldlines(th_obs, r_pl, n_lines, n_segments) {
     var r_max = 1.0 / Math.sin(th_foot)**2;
     var phi_line = Math.atan2(p_intersect.y, p_intersect.x);
     var line_pos = []
+    var colors = []
     for (var j = 0; j <= n_segments; j++) {
       var th = th_foot + j * (Math.PI - 2.0 * th_foot) / n_segments;
       var r = r_max * Math.sin(th)**2;
@@ -145,21 +148,23 @@ function create_fieldlines(th_obs, r_pl, n_lines, n_segments) {
       // Rotate it back to the lab frame
       p.applyQuaternion(q_dipole_inv);
       line_pos.push(p.x, p.y, p.z);
+      colors.push(0.1, 0.8, 0.1);
     }
     const line_geometry = new LineGeometry();
     line_geometry.setPositions( line_pos );
+    line_geometry.setColors( colors );
 
     var line_matLine = new LineMaterial( {
       color: 0x33dd33,
       worldUnits: true,
       linewidth: 0.15, // in world units with size attenuation, pixels otherwise
-      vertexColors: false,
-      // alphaTest: 0.5,
+      vertexColors: true,
+      alphaTest: 0.5,
       // depthTest: false,
 
       // resolution:  to be set by renderer, eventually
       dashed: false,
-      // alphaToCoverage: true,
+      alphaToCoverage: true,
       transparent: true,
       opacity: 0.7,
       blending: THREE.NormalBlending,
@@ -272,13 +277,28 @@ gui.add(conf, "obs_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "dipole_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "o_mode").listen().onChange(switch_o_mode);
 gui.add(conf, "x_mode").listen().onChange(switch_x_mode);
+gui.add(conf, "rotating").listen();
+
+var guiFunctions = function () {
+  this.set_observer = function () {
+    camera.position.set(camera_d * Math.sin(conf.obs_angle * Math.PI / 180), 0,
+                        camera_d * Math.cos(conf.obs_angle * Math.PI / 180));
+  }
+}
+var gui_func = new guiFunctions();
+gui.add(gui_func, "set_observer");
+
+var rotation_speed = 0.004;
 
 function animate() {
   requestAnimationFrame(animate, canvas);
   // stats.begin();
   // if(!instance.active || sample_defaults.paused) return;
 
-  // field_lines.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.003);
+  if (conf.rotating) {
+    field_lines.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), rotation_speed);
+    polarization_vectors.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), rotation_speed);
+  }
   // closed_lines.visible = conf.show_closed;
 
   renderer.render(scene, camera);
