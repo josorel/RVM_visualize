@@ -66,7 +66,10 @@ scene.add(star_mesh);
 var pl_geometry = new THREE.SphereGeometry(1.0, 64, 64);
 var pl_material = new THREE.MeshPhongMaterial({ color: 0xffffff,
                                                 transparent: true,
-                                                depthWrite: false });
+                                                depthWrite: false,
+                                                blending: THREE.NormalBlending,
+                                                // blending: THREE.SubtractiveBlending,
+                                              });
 pl_material.opacity = 0.3;
 var pl_mesh = new THREE.Mesh(pl_geometry, pl_material);
 pl_mesh.scale.setScalar(conf.pl_radius);
@@ -159,7 +162,8 @@ function create_fieldlines(th_obs, r_pl, n_lines, n_segments) {
       // alphaToCoverage: true,
       transparent: true,
       opacity: 0.7,
-      // blending: THREE.NormalBlending,
+      blending: THREE.NormalBlending,
+      // blending: THREE.SubtractiveBlending,
     } );
 
     var l = new Line2( line_geometry, line_matLine );
