@@ -70,8 +70,8 @@ var pl_geometry = new THREE.SphereGeometry(1.0, 64, 64);
 var pl_material = new THREE.MeshPhongMaterial({ color: 0xffffff,
                                                 transparent: true,
                                                 depthWrite: false,
-                                                blending: THREE.AdditiveBlending,
-                                                // blending: THREE.SubtractiveBlending,
+                                                // blending: THREE.AdditiveBlending,
+                                                blending: THREE.NormalBlending,
                                               });
 pl_material.opacity = 0.3;
 var pl_mesh = new THREE.Mesh(pl_geometry, pl_material);
