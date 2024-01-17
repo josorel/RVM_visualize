@@ -1,0 +1,16 @@
+node_modules
+temp
+tmp
+test
+benchmark
+docs
+.github
+.vscode
+.gitignore
+tsconfig.json
+rollup.config.js
+index.html
+.yarn
+.pnp.js
+.yarnrc.yml
+docs
