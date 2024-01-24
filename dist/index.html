@@ -27,6 +27,9 @@
   <body>
     <script type="module" src="rvm.js"></script>
     <canvas id="vis" class="vis"></canvas>
+    <canvas id="plot" class="plot"></canvas>
+    <script src="./webglplot.umd.js"></script>
+    <script src="../test/script-umd.js"></script>
     
     <div id="description">
       <h3>RVM Visualization</h3>
@@ -44,6 +47,9 @@
       <p>The visualization is interactive. Feel free to drag around. You can
       change the observer angle and dipole inclination angle at the upper-right
       corner. "set_observer" will put the camera along the observer line of sight.</p>
+    </div>
+    <div id="plotDescription">
+      <h4>Polarization Angle Plot</h4>
     </div>
   </body>
 </html>

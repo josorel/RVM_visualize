@@ -315,7 +315,7 @@ const canvas2 = document.getElementById("plot");
 
 const devicePixelRatio = window.devicePixelRatio || 1;
 canvas2.width = canvas2.clientWidth * devicePixelRatio;
-canvas2.height = canvas2.clientHeight * devicePixelRatio;
+canvas2.height = canvas2.clientHeight * devicePixelRatio * 1.4;
 
 const numX = canvas2.width;
 
@@ -336,12 +336,12 @@ function newFrame() {
 requestAnimationFrame(newFrame);
 
 function update() {
-  const freq = 0.001;
+  const freq = 0.005;
   const amp = 0.5;
-  const noise = 0.1;
+  const noise = 0.05;
 
   for (let i = 0; i < line.numPoints; i++) {
-    const ySin = Math.sin(Math.PI * i * freq * Math.PI * 2);
+    const ySin = Math.sin(Math.PI * i * freq * Math.PI * 2) - 1;
     const yNoise = Math.random() - 0.5;
     line.setY(i, ySin * amp + yNoise * noise);
   }
