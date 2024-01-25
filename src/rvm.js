@@ -341,7 +341,8 @@ function update() {
   const noise = 0.05;
 
   for (let i = 0; i < line.numPoints; i++) {
-    const ySin = Math.sin(Math.PI * i * freq * Math.PI * 2) - 1;
+    const ySin = Math.atan((Math.sin(conf.dipole_angle) *Math.sin(Math.sin(Math.PI * i * freq * Math.PI * 2)))/(Math.cos(conf.obs_angle)*Math.sin(conf.dipole_angle)*Math.cos(Math.sin(Math.PI * i * freq * Math.PI * 2))-Math.sin(conf.obs_angle)*Math.cos(conf.dipole_angle)));
+    // const ySin = Math.sin(Math.PI * i * freq * Math.PI * 2)-conf.dipole_angle/180;
     const yNoise = Math.random() - 0.5;
     line.setY(i, ySin * amp + yNoise * noise);
   }
