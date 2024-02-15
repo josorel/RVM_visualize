@@ -26,6 +26,7 @@ var Config = function () {
   this.dipole_angle = 10.0;
   this.obs_angle = 45.0;
   this.pl_radius = 30.0;
+  this.rotation_speed=0.01;
   this.x_mode = true;
   this.o_mode = false;
   this.rotating = false;
@@ -201,7 +202,7 @@ function create_polarization_vectors() {
       dir.normalize();
     }
 
-    const arrow = new THREE.ArrowHelper( dir, p, 3.0, 0xdd4433 );
+    const arrow = new THREE.ArrowHelper( dir, p, 10.0, 0xdd4433 );
     arrow.name = "arrow";
     polarization_vectors.add(arrow);
   }
@@ -276,6 +277,7 @@ const gui = new GUI();
 gui.add(conf, "pl_radius", 1.0, 100.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "obs_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "dipole_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
+gui.add(conf, "rotation_speed", 0.0, 0.05).listen();
 gui.add(conf, "o_mode").listen().onChange(switch_o_mode);
 gui.add(conf, "x_mode").listen().onChange(switch_x_mode);
 gui.add(conf, "rotating").listen();
@@ -289,7 +291,7 @@ var guiFunctions = function () {
 var gui_func = new guiFunctions();
 gui.add(gui_func, "set_observer");
 
-var rotation_speed = 0.004;
+var phase = 0.0;
 
 function animate() {
   requestAnimationFrame(animate, canvas);
@@ -297,8 +299,9 @@ function animate() {
   // if(!instance.active || sample_defaults.paused) return;
 
   if (conf.rotating) {
-    field_lines.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), rotation_speed);
-    polarization_vectors.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), rotation_speed);
+    field_lines.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), conf.rotation_speed);
+    polarization_vectors.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), conf.rotation_speed);
+    phase += conf.rotation_speed;
   }
   // closed_lines.visible = conf.show_closed;
 
@@ -318,15 +321,19 @@ canvas2.width = canvas2.clientWidth * devicePixelRatio;
 canvas2.height = canvas2.clientHeight * devicePixelRatio * 1.4;
 
 const numX = canvas2.width;
+const numY = canvas2.height;
 
 const color = new WebglPlotBundle.ColorRGBA(Math.random(), Math.random(), Math.random(), 1);
+const white = new WebglPlotBundle.ColorRGBA(1,0,0,1);
 
 const line = new WebglPlotBundle.WebglLine(color, numX);
+const line2 = new WebglPlotBundle.WebglLine(white, numY);
 
 const wglp = new WebglPlotBundle.WebglPlot(canvas2);
 
 line.lineSpaceX(-1, 2 / numX);
 wglp.addLine(line);
+wglp.addLine(line2);
 
 function newFrame() {
   update();
@@ -336,15 +343,27 @@ function newFrame() {
 requestAnimationFrame(newFrame);
 
 function update() {
-  const freq = 0.005;
-  const amp = 0.5;
+  const freq = 0.002;
+  const amp = 0.1; // (1/pi)*0.8
   const noise = 0.05;
+  const cam_phi = Math.atan2(camera.position.y, camera.position.x) + Math.PI;
 
   for (let i = 0; i < line.numPoints; i++) {
-    const ySin = Math.atan((Math.sin(conf.dipole_angle) *Math.sin(Math.sin(Math.PI * i * freq * Math.PI * 2)))/(Math.cos(conf.obs_angle)*Math.sin(conf.dipole_angle)*Math.cos(Math.sin(Math.PI * i * freq * Math.PI * 2))-Math.sin(conf.obs_angle)*Math.cos(conf.dipole_angle)));
+    const rad_dipole = conf.dipole_angle/180*Math.PI;
+    const rad_obs = conf.obs_angle/180*Math.PI;
+    const x = -1 + i * 2 / numX;
+    const phi = 2.0 * Math.PI * (x + 1);
+    const ySin = Math.atan((Math.sin(rad_dipole) * Math.sin(phi))/
+                            (Math.cos(rad_obs) * Math.sin(rad_dipole)*Math.cos(phi)-Math.sin(rad_obs)*Math.cos(rad_dipole)));
     // const ySin = Math.sin(Math.PI * i * freq * Math.PI * 2)-conf.dipole_angle/180;
     const yNoise = Math.random() - 0.5;
     line.setY(i, ySin * amp + yNoise * noise);
+  }
+  for (let i =0; i<line2.numPoints; i++){
+    const angle=(cam_phi+phase)%(Math.PI*4)+(Math.PI/2);
+    const x = angle/(2*Math.PI)-1;
+    line2.setX(i, x);
+    line2.setY(i, -1 + i * 2 / numY);
   }
 }
 
@@ -1389,3 +1408,29 @@ function update() {
   exports.WebglThickLine = WebglThickLine;
 
 }));
+
+//-----------------------------------------------------------------------------------------------
+
+const canvas3 = document.getElementById("chart");
+
+const devicePixelRatio2 = window.devicePixelRatio || 1;
+canvas3.width = canvas3.clientWidth * devicePixelRatio2;
+canvas3.height = canvas3.clientHeight * devicePixelRatio2 * 1.4;
+
+const xyValues = [
+    {x:0, y:-1},
+    {x:0, y:1}
+  ];
+
+
+new Chart("chart", {
+    type: "scatter",
+    data: {},
+      options: {
+        legend: {display: false},
+        scales: {
+          xAxes: [{ticks: {min: 0, max:1}}],
+          yAxes: [{ticks: {min: -2, max:2}}],
+        }}
+        
+  });
