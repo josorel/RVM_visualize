@@ -11,6 +11,27 @@ body {
   top: 0px;
   margin: 0px;
 }
+.plot {
+  position: absolute;
+  left: 70vw;
+  top: 50vh;
+  margin: 0px;
+  background-color: rgb(0, 0, 0);
+  color: white;
+  border-radius: 25px;
+  border: 1px solid rgb(255, 255, 255);
+}
+#chart {
+  position: absolute;
+  left: 70vw;
+  top: 50vh;
+  margin: 0px;
+  width: 0.1vw;
+  height: 0.1vh;
+  color: #ffffff;
+  border-radius: 25px;
+  background-color: rgba(30, 30, 30, 0);
+}
 #description {
   position: absolute;
   left: 5vw;
@@ -20,7 +41,7 @@ body {
   padding: 2em;
   border-radius: 25px;
   z-index: 1;
-  color: #dddddd;
+  color: #ffffff;
   background-color: rgba(30, 30, 30, 0.5);
 }
 #description p {
@@ -32,3 +53,16 @@ body {
   color: #ffffff;
   font-size: 2vw;
 }
+#plotDescription {
+  position: absolute;
+  left: 72vw;
+  top: 50vh;
+  width: 20vw;
+  height: 5vh;
+  /* padding: 2em; */
+  /* border-radius: 25px; */
+  z-index: 1;
+  color: #ffffff;
+  /* background-color: rgba(30, 30, 30, 0.5); */
+}
+

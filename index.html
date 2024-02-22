@@ -26,7 +26,14 @@
   </head>
   <body>
     <script type="module" src="rvm.js"></script>
-    <canvas class="vis"></canvas>
+    <canvas id="vis" class="vis"></canvas>
+    <canvas id="plot" class="plot"></canvas>
+    <script src="./webglplot.umd.js"></script>
+    <script src="./script-umd.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <canvas id="chart"></canvas> -->
+    
+    
     <div id="description">
       <h3>RVM Visualization</h3>
       <p>This is a visualization of the Rotating Vector Model (RVM). The inner
@@ -35,7 +42,7 @@
       adiabatically change to follow the local magnetic field direction, up
       until the "polarization limiting radius" $r_\mathrm{pl}$, visualized as
         the larger translucent sphere. The <span style="color: cyan;">bright cyan circle</span> represents the
-      intersection of the line-of-sight of an observer with the limiting sphere as the star rotates,
+      intersection of the line-of-sight of an observer with the limiting sphere,
         and <span style="color: green;">green curves</span> are magnetic field lines crossing this circle. The
       orientation of these magnetic field lines determines the polarization
         directions the observer sees, which are visualized as <span style="color: red;">red arrows</span>. The
@@ -43,6 +50,9 @@
       <p>The visualization is interactive. Feel free to drag around. You can
       change the observer angle and dipole inclination angle at the upper-right
       corner. "set_observer" will put the camera along the observer line of sight.</p>
+    </div>
+    <div id="plotDescription">
+      <h4>Polarization Angle Plot</h4>
     </div>
   </body>
 </html>
