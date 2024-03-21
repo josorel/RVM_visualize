@@ -92,6 +92,58 @@ var z_line = new THREE.Line(axis_geometry, new THREE.LineBasicMaterial({
 }));
 scene.add(z_line);
 
+// var axis_geometry2 = new THREE.BufferGeometry();
+// var axis_vertices2 = new Float32Array( [
+// 0, -conf.dipole_angle*(10/3), -300,
+// 0, conf.dipole_angle*(10/3), 300
+// ] );
+// axis_geometry2.setAttribute( 'position', new THREE.BufferAttribute( axis_vertices2, 3 ) );
+// var z_line2 = new THREE.Line(axis_geometry2, new THREE.LineBasicMaterial({
+// color: 0x0000ff,
+// linewidth: 2.5,
+// }));
+// scene.add(z_line2);
+
+
+// function set_axis(){
+//     var axis_geometry2 = new THREE.BufferGeometry();
+//     var axis_vertices2 = new Float32Array( [
+//         0, -300*Math.sin(conf.dipole_angle/180*Math.PI), -300*Math.cos(conf.dipole_angle/180*Math.PI),
+//         0, 300*Math.sin(conf.dipole_angle/180*Math.PI), 300*Math.cos(conf.dipole_angle/180*Math.PI),
+//         ] );
+//     axis_geometry2.setAttribute( 'position', new THREE.BufferAttribute( axis_vertices2, 3 ) );
+//     var z_line2 = new THREE.Line(axis_geometry2, new THREE.LineBasicMaterial({
+//         color: 0x0000ff,
+//         linewidth: 2.5,
+//         }));
+//         z_line2.name = "line";
+//     field_lines.add(z_line2);
+// }
+
+const loader = new THREE.TextureLoader();
+const texture = loader.load ('plasma.jpg')
+
+function set_axis(){
+    var axis_geometry2 = new THREE.ConeGeometry(5,100,50);
+    const material = new THREE.MeshPhongMaterial();
+    material.map = texture;
+    material.transparent=true;
+    material.opacity=0.7;
+    var z_line2 = new THREE.Mesh(axis_geometry2, material );
+        z_line2.name = "line";
+    z_line2.rotateX(-(conf.dipole_angle/180*Math.PI+Math.PI/2));
+    axis_geometry2.center(0,0,0);
+    axis_geometry2.translate(0,-50,0);
+    field_lines.add(z_line2);
+    var axis_geometry3 = new THREE.ConeGeometry(5,100,50);
+    var z_line3 = new THREE.Mesh(axis_geometry2, material );
+        z_line3.name = "line";
+    z_line3.rotateX(-(conf.dipole_angle/180*Math.PI-Math.PI/2));
+    axis_geometry3.center(0,0,0);
+    axis_geometry3.translate(0,-50,0);
+    field_lines.add(z_line3);
+}
+
 /// Add lighting to the star and other meshes
 var directionalLight = new THREE.DirectionalLight(0xffffffff);
 directionalLight.position.set(107, 107, 107);
@@ -178,6 +230,7 @@ function create_fieldlines(th_obs, r_pl, n_lines, n_segments) {
     l.name = "line";
     field_lines.add(l);
   }
+  set_axis();
 }
 
 function create_polarization_vectors() {
@@ -218,8 +271,10 @@ function update_fieldline() {
   // remove_fieldlines();
   clear_group(field_lines);
   clear_group(polarization_vectors);
+//   scene.remove(z_line2);
   create_fieldlines(conf.obs_angle * Math.PI / 180, conf.pl_radius, 20, 100);
   create_polarization_vectors();
+//   set_axis();
 }
 
 /// A circle to visualize the trajectory of observing angle
@@ -277,7 +332,7 @@ const gui = new GUI();
 gui.add(conf, "pl_radius", 1.0, 100.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "obs_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "dipole_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
-gui.add(conf, "rotation_speed", 0.0, 0.05).listen();
+gui.add(conf, "rotation_speed", 0.0, 1).listen();
 gui.add(conf, "o_mode").listen().onChange(switch_o_mode);
 gui.add(conf, "x_mode").listen().onChange(switch_x_mode);
 gui.add(conf, "rotating").listen();
@@ -301,6 +356,11 @@ function animate() {
   if (conf.rotating) {
     field_lines.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), conf.rotation_speed);
     polarization_vectors.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), conf.rotation_speed);
+    // z_line2.rotateOnWorldAxis(new THREE.Line(axis_geometry2, new THREE.LineBasicMaterial({
+    //     color: 0x0000ff,
+    //     linewidth: 2.5,
+    //   })), conf.rotation_speed);
+    // z_line2.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), conf.rotation_speed);
     phase += conf.rotation_speed;
   }
   // closed_lines.visible = conf.show_closed;
@@ -344,20 +404,36 @@ requestAnimationFrame(newFrame);
 
 function update() {
   const freq = 0.002;
-  const amp = 0.1; // (1/pi)*0.8
+  const amp = 0.4; // (1/pi)*0.8
   const noise = 0.05;
   const cam_phi = Math.atan2(camera.position.y, camera.position.x) + Math.PI;
 
   for (let i = 0; i < line.numPoints; i++) {
-    const rad_dipole = conf.dipole_angle/180*Math.PI;
-    const rad_obs = conf.obs_angle/180*Math.PI;
-    const x = -1 + i * 2 / numX;
-    const phi = 2.0 * Math.PI * (x + 1);
-    const ySin = Math.atan((Math.sin(rad_dipole) * Math.sin(phi))/
-                            (Math.cos(rad_obs) * Math.sin(rad_dipole)*Math.cos(phi)-Math.sin(rad_obs)*Math.cos(rad_dipole)));
-    // const ySin = Math.sin(Math.PI * i * freq * Math.PI * 2)-conf.dipole_angle/180;
-    const yNoise = Math.random() - 0.5;
-    line.setY(i, ySin * amp + yNoise * noise);
+    if (conf.o_mode){
+        const rad_dipole = conf.dipole_angle/180*Math.PI;
+        const rad_obs = conf.obs_angle/180*Math.PI;
+        const x = -1 + i * 2 / numX;
+        const phi = 2.0 * Math.PI * (x + 1);
+        const ySin = Math.atan((Math.sin(rad_dipole) * Math.sin(phi))/
+                                (Math.cos(rad_obs) * Math.sin(rad_dipole)*Math.cos(phi)-Math.sin(rad_obs)*Math.cos(rad_dipole)));
+        // const ySin = Math.sin(Math.PI * i * freq * Math.PI * 2)-conf.dipole_angle/180;
+        const yNoise = Math.random() - 0.5;
+        line.setY(i, ySin * amp + yNoise * noise);
+    }
+    else{
+        const rad_dipole = conf.dipole_angle/180*Math.PI;
+        const rad_obs = conf.obs_angle/180*Math.PI;
+        const x = -1 + i * 2 / numX;
+        const phi = 2.0 * Math.PI * (x + 1);
+        var ySin = (Math.atan((Math.sin(rad_dipole) * Math.sin(phi))/
+                                (Math.cos(rad_obs) * Math.sin(rad_dipole)*Math.cos(phi)-Math.sin(rad_obs)*Math.cos(rad_dipole))))+Math.PI/2;
+        if (ySin>Math.PI/2){
+            ySin = ySin-(Math.PI);
+        }
+        // const ySin = Math.sin(Math.PI * i * freq * Math.PI * 2)-conf.dipole_angle/180;
+        const yNoise = Math.random() - 0.5;
+        line.setY(i, ySin * amp + yNoise * noise);
+    }
   }
   for (let i =0; i<line2.numPoints; i++){
     const angle=(cam_phi+phase)%(Math.PI*4)+(Math.PI/2);
@@ -1413,24 +1489,26 @@ function update() {
 
 const canvas3 = document.getElementById("chart");
 
-const devicePixelRatio2 = window.devicePixelRatio || 1;
-canvas3.width = canvas3.clientWidth * devicePixelRatio2;
-canvas3.height = canvas3.clientHeight * devicePixelRatio2 * 1.4;
-
 const xyValues = [
     {x:0, y:-1},
     {x:0, y:1}
   ];
 
 
+  const color1 = new WebglPlotBundle.ColorRGBA(0,0.1,0.1,0.5);
+
 new Chart("chart", {
     type: "scatter",
     data: {},
       options: {
-        legend: {display: false},
         scales: {
-          xAxes: [{ticks: {min: 0, max:1}}],
-          yAxes: [{ticks: {min: -2, max:2}}],
-        }}
+          xAxes: [{ticks: {min: 0, max:1},display:false}],
+          yAxes: [{ticks: {min: -1, max:1}, display:true,gridLines: {
+            display: true         
+          }}],
+        },
+        responsive: false,
+        //maintainAspectRatio: true
+    }
         
   });
