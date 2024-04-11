@@ -26,14 +26,14 @@ The polarization vectors, which represent the direction of propagation, or plana
 
 Radhakrishnan and Cooke (1969) first brought to light this periodic change in polarization angle (PA), which we can plot using the Rotating Vector Model (RVM) explained above.
 
-## Creation of the simulation
-This simulation is created using JavaScript, specifically making use of Three.js, which is a library that allows for the visualization of 3D objects in a browser. It also makes use of WebGLPlot to make real-time dynamic plots.
+## Creation of the visualization
+This visualizations is created using JavaScript, specifically making use of Three.js, which is a library that allows for the visualization of 3D objects in a browser. It also makes use of WebGLPlot to make real-time dynamic plots.
 
 ### Field Lines
 The core of this simulation is built on a simulated neutron star from which magnetic field lines emanate. As we can see, these lines come radially out of both magnetic poles, modeled after a magnetic dipole.
 
 ### Magnetic and Rotation Axes
-Two axes slice through the pulsar, one being its rotational axis (which is always perfectly vertical), the other being its magnetic axis. This latter axis intersects both magnetic poles, as we can observe, are the origins and ends of all magnetic field lines.
+Two axes slice through the pulsar, one being its rotational axis (which is always assumed to be perfectly vertical), the other being its magnetic axis. This latter axis intersects both magnetic poles, as we can observe, are the origins and ends of all magnetic field lines.
 
 It is possible to change the orientation of the magnetic axis by changing the dipole angle. The beam along this axis will follow its orientation, modeled by a cone with plasma-like texture.
 
@@ -42,13 +42,13 @@ All these elements can then rotate with a custom rotation speed. High rotation s
 ## Polarization Angle Plot
 Created using WebGLPlot, the PA plot follows the observer with a red vertical line as they rotate the pulsar. It also follows the automatic rotation of the star. The plot has a bit of a static effect to illustrate it as being dynamic. A "lock observer" option has been added to better allow the correlation between vector orientation and the resulting plot to be understood.
 
-$\psi=arctan(\frac{sin(\theta)sin(\phi)}{cos(\chi)sin(\theta)cos(\phi)-sin(\chi)cos(\theta)})$
+$$\psi=\arctan\left(\frac{\sin\theta\sin\phi}{\cos\chi\sin\theta\cos\phi-\sin\chi\cos\theta}\right)$$
 
 Where: 
-* $\theta $ is the dipole angle (relative to the axis of rotation)
-* $\chi $ is the observer angle, determining the circle swept by the line of sight
-* $\phi $ is the phase angle, tracking where we are in a revolution
-* $\psi $ is the resulting polarization angle
+* $\theta$ is the dipole angle (relative to the axis of rotation)
+* $\chi$ is the observer angle, determining the circle swept by the line of sight
+* $\phi$ is the phase angle, tracking where we are in a revolution
+* $\psi$ is the resulting polarization angle
 
 ### Interpretations
 The PA graph reaches its max/mins when the PA is $\frac{\pi}{2}$ or $-\frac{\pi}{2}$, corresponding to when the vectors appear tangent to the circle swept by the line of sight. This happens at different times depending on which mode was chosen: `o-mode` will show vectors as parallel to the polarization of rays, whereas `x-mode` will show them as perpendicular. The opposite is true for when the plot is at 0. 
