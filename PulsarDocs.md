@@ -13,7 +13,8 @@ Pulsars, or rotating neutron stars, are some of the most extreme objects in the 
 Pulsars have long beams coming out of their magnetic poles, filled with all kinds of radiation. As a result of their fast spinning, we can observe these beams every time they are momentarily oriented towards us, creating a lighthouse effect. The graph below illustrates this regular cycle of radiation emitted from such a beam.
 
 ![Alt text](image-1.png)
-*Tsygankov, Sergey & Lutovinov, A. & Churazov, E. & Sunyaev, R.. (2007). 4U 0115+63 from RXTE and INTEGRAL data: Pulse profile and cyclotron line energy. Astronomy Letters. 33. 368-384.*
+
+*Tsygankov, Sergey & Lutovinov, A. & Churazov, E. & Sunyaev, R.. (2007). 4U 0115+63 from RXTE and INTEGRAL data: Pulse profile and cyclotron line energy. Astronomy Letters. 33. 368-384.
 ## Rotating Vector Model
 
 We can approxiamte the magnetic field of a neutron star to that of a dipole. 
@@ -51,7 +52,7 @@ Where:
 * $\psi$ is the resulting polarization angle
 
 ### Interpretations
-The PA graph reaches its max/mins when the PA is $\frac{\pi}{2}$ or $-\frac{\pi}{2}$, corresponding to when the vectors appear tangent to the circle swept by the line of sight. This happens at different times depending on which mode was chosen: `o-mode` will show vectors as parallel to the polarization of rays, whereas `x-mode` will show them as perpendicular. The opposite is true for when the plot is at 0. 
+The PA graph reaches its max/mins when the PA is $\frac{\pi}{2}$ or $-\frac{\pi}{2}$, corresponding to when the vectors appear tangent to the circle swept by the line of sight. This happens at different times depending on which mode was chosen: `o-mode` will show vectors as parallel to the magnetic field plane, whereas `x-mode` will show them as perpendicular. The opposite is true for when the plot is at 0. 
 
 The plot will have the greastest slope when the change in PA is greatest
 
