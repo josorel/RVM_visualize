@@ -23,13 +23,14 @@ renderer.setSize(width, height);
 
 /// Config contains the physical and visualization parameters
 var Config = function () {
-  this.dipole_angle = 10.0;
+  this.dipole_angle = 50.0;
   this.obs_angle = 45.0;
   this.pl_radius = 30.0;
   this.rotation_speed=0.01;
-  this.x_mode = true;
-  this.o_mode = false;
+  this.x_mode = false;
+  this.o_mode = true;
   this.rotating = false;
+  this.lock_observer = true;
 }
 var conf = new Config();
 var q_dipole = new THREE.Quaternion();
@@ -58,6 +59,7 @@ var controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.enableKeys = false;
+controls.minPolarAngle = controls.maxPolarAngle = conf.obs_angle * Math.PI / 180;
 
 /// Add the neutron star
 // var star_radius = 1.0;
@@ -313,6 +315,7 @@ function update_pl_sphere() {
   pl_mesh.scale.setScalar(conf.pl_radius);
   obs_circ.scale.setScalar(conf.pl_radius * Math.sin(conf.obs_angle * Math.PI / 180));
   obs_circ.position.setZ(conf.pl_radius * Math.cos(conf.obs_angle * Math.PI / 180));
+  controls.minPolarAngle = controls.maxPolarAngle = conf.obs_angle * Math.PI / 180;
   update_fieldline();
 }
 
@@ -328,6 +331,24 @@ function switch_x_mode() {
   update_fieldline();
 }
 
+function toggle_lock_observer() {
+  if (conf.lock_observer) {
+    controls.minPolarAngle = controls.maxPolarAngle = conf.obs_angle * Math.PI / 180;
+  } else {
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = Math.PI;
+  }
+}
+
+// function toggle_rotate() {
+//   if (conf.rotating) {
+//     controls.autoRotate = true;
+//     controls.autoRotateSpeed = conf.rotation_speed;
+//   } else {
+//     controls.autoRotate = false;
+//   }
+// }
+
 const gui = new GUI();
 gui.add(conf, "pl_radius", 1.0, 100.0).listen().onChange(update_pl_sphere);
 gui.add(conf, "obs_angle", 0.0, 90.0).listen().onChange(update_pl_sphere);
@@ -336,6 +357,8 @@ gui.add(conf, "rotation_speed", 0.0, 1).listen();
 gui.add(conf, "o_mode").listen().onChange(switch_o_mode);
 gui.add(conf, "x_mode").listen().onChange(switch_x_mode);
 gui.add(conf, "rotating").listen();
+gui.add(conf, "lock_observer").listen().onChange(toggle_lock_observer);
+
 
 var guiFunctions = function () {
   this.set_observer = function () {
@@ -346,7 +369,8 @@ var guiFunctions = function () {
 var gui_func = new guiFunctions();
 gui.add(gui_func, "set_observer");
 
-var phase = 0.0;
+// var phase = Math.atan2(camera.position.y, camera.position.x) + Math.PI;
+var phase = Math.PI/2;
 
 function animate() {
   requestAnimationFrame(animate, canvas);
@@ -354,20 +378,24 @@ function animate() {
   // if(!instance.active || sample_defaults.paused) return;
 
   if (conf.rotating) {
-    field_lines.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), conf.rotation_speed);
-    polarization_vectors.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), conf.rotation_speed);
+    field_lines.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), -conf.rotation_speed);
+    polarization_vectors.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), -conf.rotation_speed);
     // z_line2.rotateOnWorldAxis(new THREE.Line(axis_geometry2, new THREE.LineBasicMaterial({
     //     color: 0x0000ff,
     //     linewidth: 2.5,
     //   })), conf.rotation_speed);
     // z_line2.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), conf.rotation_speed);
     phase += conf.rotation_speed;
+    phase = phase%(Math.PI*4);
   }
   // closed_lines.visible = conf.show_closed;
 
   renderer.render(scene, camera);
+  // var cam_phi0 = Math.atan2(camera.position.y, camera.position.x) + Math.PI;
   controls.update();
   // stats.end();
+  // var cam_phi1 = Math.atan2(camera.position.y, camera.position.x) + Math.PI;
+  // phase = (phase + cam_phi1 - cam_phi0) % (Math.PI * 4);
 }
 
 animate();
@@ -436,7 +464,9 @@ function update() {
     }
   }
   for (let i =0; i<line2.numPoints; i++){
-    const angle=(cam_phi+phase)%(Math.PI*4)+(Math.PI/2);
+    // const angle=(cam_phi+phase)%(Math.PI*4)+(Math.PI/2);
+    // const angle=(phase)%(Math.PI*4)+(Math.PI/2);
+    const angle=(cam_phi + phase)%(Math.PI*4);
     const x = angle/(2*Math.PI)-1;
     line2.setX(i, x);
     line2.setY(i, -1 + i * 2 / numY);
