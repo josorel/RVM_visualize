@@ -1,29 +1,29 @@
-# Rotating Vector Model Simulation
+# Rotating Vector Model Visualization
 ## Pulsars
 At the end of their lives (as their nuclear fuel runs out), stars can take different paths depending on their mass:
 * Smallest stars, brown or red dwarfs, die off very slowly, becoming more and more dim
 * Average stars, like our sun, often grow to being a red giant, then collapse into a nebula with a white dwarf in its center
 * Massive stars are where it really gets interesting. These grow into supergiants then explode in supernovas, leaving either a neutron star (the case where mass wins-- the star is held together with degeneracy pressure) or a black hole (the case where gravity wins).
 
-Pulsars, or rotating neutron stars, are some of the most extreme objects in the universe. They are incredibly dense and hot, and they rotate unbelivably fast. They are also extremely strong magnets, making for an interesting object of study.
+Pulsars, or rotating neutron stars, are some of the most extreme objects in the universe. They are incredibly dense and have extremely hot spots, and they rotate unbelivably fast. They are also extremely strong magnets, making for an interesting object of study.
 
 ![Alt text](image.png)
 *Vela Pusar Jet, Chandra X-ray Observatory*
 
-Pulsars have long beams coming out of their magnetic poles, filled with all kinds of radiation. As a result of their fast spinning, we can observe these beams every time they are momentarily oriented towards us, creating a lighthouse effect. The graph below illustrates this regular cycle of radiation emitted from such a beam.
+Pulsars have long beams coming out of their magnetic poles, mostly composed of radio emissions. As a result of their fast spinning, we can observe these beams every time they are momentarily oriented towards us, creating a lighthouse effect. The graph below illustrates one of these radiation peaks seen once every rotation.
 
-![Alt text](image-1.png)
+![Alt text](image-6.png)
 
-*Tsygankov, Sergey & Lutovinov, A. & Churazov, E. & Sunyaev, R.. (2007). 4U 0115+63 from RXTE and INTEGRAL data: Pulse profile and cyclotron line energy. Astronomy Letters. 33. 368-384.
+*Johnston, S. and Kerr, M. (2018). Polarimetry of 600 pulsars from observations at 1.4 GHz with the Parkes radio telescope.*
 ## Rotating Vector Model
 
 We can approxiamte the magnetic field of a neutron star to that of a dipole. 
 
 ![Alt text](image-5.png)
 
-It is important to note that this model works best on slow spinning pulsars (rather than the wilder magnetars, for example). Although it works well near the surface, this model also becomes less accurate further from the pulsar, as the magentic field lines would need a velocity near that of the speed of light to co-rotate with the pulsar (tangential velocity is equal to the product of the angular velocity and the radius from the pulsar's center, so as distance (radius) from the pulsar increases, so does the tangential velocity. However, since this speed cannot exceed that of light, the field lines drag behind, creating a spiral shape).
+It is important to note that this model works best on slow spinning pulsars (rather than millisecond pulsars, for example). Although it works well near the surface, this model also becomes less accurate further from the pulsar, as the magentic field lines would need a velocity near that of the speed of light to co-rotate with the pulsar. The reason for this is that the tangential velocity is equal to the product of the angular velocity and the radius from the pulsar's center, so as distance (radius) from the pulsar increases, so does the tangential velocity. However, since this speed cannot exceed that of light, the field lines drag behind, creating a spiral shape.
 
-The polarization vectors, which represent the direction of propagation, or planar inclination of light waves. These are depicted in the simulation as arrows on the plane of magnetic field. They are changed due to the magnetic field, which acts as a polarization filter. Thus, as the dipole and observer angles change the planes
+The polarization vectors point in the direction of the electric field of the EM wave (so perpendicular to their propagation). These are depicted in the simulation as arrows on the plane of magnetic field. They are changed due to the magnetic field, which acts as follows: particles that emit radiation have to follow the magnetic field, limiting the direction of polarization either in the plane (o-mode) or perpendicular (x-mode) to the plane of the magnetic field.
 
 Radhakrishnan and Cooke (1969) first brought to light this periodic change in polarization angle (PA), which we can plot using the Rotating Vector Model (RVM) explained above.
 
@@ -31,10 +31,10 @@ Radhakrishnan and Cooke (1969) first brought to light this periodic change in po
 This visualizations is created using JavaScript, specifically making use of Three.js, which is a library that allows for the visualization of 3D objects in a browser. It also makes use of WebGLPlot to make real-time dynamic plots.
 
 ### Field Lines
-The core of this simulation is built on a simulated neutron star from which magnetic field lines emanate. As we can see, these lines come radially out of both magnetic poles, modeled after a magnetic dipole.
+As we can see, the magnetic field lines emanate radially out of both magnetic poles, modeled after a magnetic dipole.
 
 ### Magnetic and Rotation Axes
-Two axes slice through the pulsar, one being its rotational axis (which is always assumed to be perfectly vertical), the other being its magnetic axis. This latter axis intersects both magnetic poles, as we can observe, are the origins and ends of all magnetic field lines.
+Two axes slice through the pulsar, one being its rotational axis (which is always assumed to be perfectly vertical), the other being its magnetic axis. This latter axis intersects both magnetic poles, as we can observe, are the origins of the magnetic field lines.
 
 It is possible to change the orientation of the magnetic axis by changing the dipole angle. The beam along this axis will follow its orientation, modeled by a cone with plasma-like texture.
 
